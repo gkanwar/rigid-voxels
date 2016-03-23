@@ -9,8 +9,12 @@
 
 // Drawing
 #include "vdb.h"
+#include "idraw.h"
 
 using namespace std;
+
+// Draw backend options
+enum Draw { Vdb, Irr };
 
 void pt(double x, double y, double z) {
   vdb_point(x,y,z);
@@ -24,7 +28,33 @@ bool fc(double f1, double f2) {
   return fabs(f1-f2) < 0.0001;
 }
 
-int main() {
+int main(int argc, char** argv) {
+  Draw draw = Draw::Vdb;
+  if (argc > 1) {
+    if (strcmp(argv[1], "vdb") == 0) {
+      draw = Draw::Vdb;
+      cout << "Using vdb draw backend." << endl;
+    }
+    else if (strcmp(argv[1], "irr") == 0) {
+      draw = Draw::Irr;
+      cout << "Using irr draw backend." << endl;
+    }
+    else {
+      cerr << "Unknown draw backend, picking vdb." << endl;
+    }
+  }
+  else {
+    cout << "Using vdb draw backend by default." << endl;
+  }
+
+  // Init drawing
+  if (draw == Draw::Irr) {
+    int err = idraw::init();
+    if (err) {
+      cerr << "Irrlicht init failed with: " << err << endl;
+      return err;
+    }
+  }
 
   // Test position pushing
   // Obj o1, o2;
@@ -64,22 +94,30 @@ int main() {
 
   // Drop o1 onto o2 (1-part each)
   Obj o1, o2;
-  o1.addPart(-0.5, 0.0);
-  o1.addPart(0.5, 0.0);
+  o1.addPart(0.0, 0.5);
+  o1.addPart(0.0, -0.5);
+  o1.theta = M_PI/2;
+  
   o2.addPart(0.5, 0.5);
   o2.addPart(0.5, -0.5);
   o1.y = 3.0;
   o1.vy = -1.0;
   o2.fixed = true;
 
+  // Add objects to draw backend
+  if (draw == Draw::Irr) {
+    idraw::addObj(&o1);
+    idraw::addObj(&o2);
+  }
+
   Voxels v;
 
-  const double ts = 0.1;
+  const double ts = 0.01;
 
   // LOOP
   int iter = 0;
   while (true) {
-    usleep(100000);
+    usleep(10000);
 
     // Step 0: Init objs
     v.voxels.clear();
@@ -111,12 +149,26 @@ int main() {
     o1.integrateVel(ts);
     o2.integrateVel(ts);
 
-    if (iter % 10 == 0) {
-      o1.push();
-      o1.draw(iter/10.0, &pt, &ln);
-      o2.push();
-      o2.draw(iter/10.0, &pt, &ln);
+
+    // Draw
+    if (draw == Draw::Vdb) {
+      if (iter % 10 == 0) {
+        o1.push();
+        o1.draw(iter/10.0, &pt, &ln);
+        o2.push();
+        o2.draw(iter/10.0, &pt, &ln);
+      }
     }
+    else if (draw == Draw::Irr) {
+      int ret = idraw::step();
+      if (ret) break;
+    }
+    
     ++iter;
+  }
+
+  // Cleanup
+  if (draw == Draw::Irr) {
+    idraw::cleanup();
   }
 }

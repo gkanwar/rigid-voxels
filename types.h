@@ -12,9 +12,12 @@ using namespace std;
 #define PART_D 0.5
 #define SIZE 100 // 10.0 x 10.0 region
 
-#define k 10.0
-#define eta 0.01
-#define kt 0.1
+// Enclose all constant params
+namespace {
+const double k = 10.0;
+const double eta = 0.01;
+const double kt = 0.1;
+} // anonymous namespace
 
 struct Obj;
 

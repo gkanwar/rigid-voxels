@@ -1,7 +1,7 @@
 #!/bin/bash
 
-LINK="-lcairo `pkg-config --libs gtk+-2.0`"
+LINK="-lIrrlicht"
 SRCS="main.cpp types.cpp"
-INC="`pkg-config --cflags gtk+-2.0`"
+INC=""
 
 g++ -std=c++11 ${INC} ${SRCS} ${LINK} -o RigidVoxels
