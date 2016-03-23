@@ -6,8 +6,7 @@
 #include <unistd.h>
 
 // Drawing
-#include <cairo/cairo.h>
-#include <gtk/gtk.h>
+#include "vdb.h"
 
 #include "types.h"
 
@@ -67,11 +66,12 @@ int main() {
 
   Voxels v;
 
-  const double ts = 0.01;
+  const double ts = 0.1;
 
   // LOOP
+  int iter = 0;
   while (true) {
-    usleep(10000);
+    usleep(100000);
 
     // Step 0: Init objs
     v.voxels.clear();
@@ -105,5 +105,10 @@ int main() {
 
     cout << "o1 vy: " << o1.vy << endl;
     cout << "o2 vy: " << o2.vy << endl;
+    if (iter % 10 == 0) {
+      vdb_point(o1.x, o1.y, iter/10.0);
+      vdb_point(o2.x, o2.y, iter/10.0);
+    }
+    ++iter;
   }
 }
