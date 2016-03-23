@@ -29,7 +29,17 @@ void Collision::applyForces() {
   p2fx += p2->vx*eta;
   p2fy += p2->vy*eta;
 
-  // TODO: Shear force
+  // Shear force
+  double vrdot1 = (p1->vx*r_xhat + p1->vy*r_yhat);
+  double vrdot2 = (p2->vx*r_xhat + p2->vy*r_yhat);
+  double vtx1 = p1->vx - vrdot1*r_xhat;
+  double vty1 = p1->vy - vrdot1*r_yhat;
+  double vtx2 = p2->vx - vrdot2*r_xhat;
+  double vty2 = p2->vy - vrdot2*r_yhat;
+  p1fx += kt*vtx1;
+  p1fy += kt*vty1;
+  p2fx += kt*vtx2;
+  p2fy += kt*vty2;
 
   // Update parent forces
   p1->parent->fx += p1fx;
