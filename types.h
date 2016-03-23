@@ -82,17 +82,17 @@ struct Voxels {
             if (i == 0 && j == 0) continue;
             auto loc = make_pair(kv.first.first+i, kv.first.second+j);
             if (voxels.count(loc)) {
-              assert(voxels[loc].size() == 1);
-              Particle *p2 = voxels[loc][0];
-              double dx = p1->x - p2->x;
-              double dy = p1->y - p2->y;
-              double dSq = dx*dx+dy*dy;
-              if (dSq < PART_D*PART_D) {
-                // Collision!
-                Collision c;
-                c.p1 = p1;
-                c.p2 = p2;
-                out.push_back(c);
+              for (Particle *p2 : voxels[loc]) {
+                double dx = p1->x - p2->x;
+                double dy = p1->y - p2->y;
+                double dSq = dx*dx+dy*dy;
+                if (dSq < PART_D*PART_D) {
+                  // Collision!
+                  Collision c;
+                  c.p1 = p1;
+                  c.p2 = p2;
+                  out.push_back(c);
+                }
               }
             }
           }
