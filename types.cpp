@@ -36,12 +36,15 @@ void Collision::applyForces() {
   p1->parent->fy += p1fy;
   p2->parent->fx += p2fx;
   p2->parent->fy += p2fy;
-  // int p1i = p1->index;
-  // int p2i = p2->index;
-  // pair<double,double> p1l = p1->parent->locs[p1i];
-  // double p1r = sqrt(p1l.first*p1l.first + p1l.second*p1l.second);
-  // pair<double,double> p2l = p2->parent->locs[p2i];
-  // double p2r = sqrt(p2l.first*p2l.first + p2l.second*p2l.second);
-  // p1->parent->t += p1r*
+  int p1i = p1->index;
+  int p2i = p2->index;
+  // Local rotated coords
+  double p1lx = p1->x - p1->parent->x;
+  double p1ly = p1->y - p1->parent->y;
+  double p2lx = p2->x - p2->parent->x;
+  double p2ly = p2->y - p2->parent->y;
+  
+  p1->parent->t += p1lx*p1fy - p1ly*p1fx;
+  p2->parent->t += p2lx*p2fy - p2ly*p2fx;
 }
 

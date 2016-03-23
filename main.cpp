@@ -15,6 +15,10 @@ using namespace std;
 void pt(double x, double y, double z) {
   vdb_point(x,y,z);
 }
+void ln(double x, double y, double z,
+        double x2, double y2, double z2) {
+  vdb_line(x,y,z,x2,y2,z2);
+}
 
 bool fc(double f1, double f2) {
   return fabs(f1-f2) < 0.0001;
@@ -60,10 +64,10 @@ int main() {
 
   // Drop o1 onto o2 (1-part each)
   Obj o1, o2;
-  o1.addPart(0.0, 0.0);
-  o1.addPart(1.0, 0.0);
-  o2.addPart(0.0, 0.5);
-  o2.addPart(0.0, -0.5);
+  o1.addPart(-0.5, 0.0);
+  o1.addPart(0.5, 0.0);
+  o2.addPart(0.5, 0.5);
+  o2.addPart(0.5, -0.5);
   o1.y = 3.0;
   o1.vy = -1.0;
   o2.fixed = true;
@@ -107,11 +111,11 @@ int main() {
     o1.integrateVel(ts);
     o2.integrateVel(ts);
 
-    cout << "o1 vy: " << o1.vy << endl;
-    cout << "o2 vy: " << o2.vy << endl;
     if (iter % 10 == 0) {
-      o1.draw(iter/10.0, &pt);
-      o2.draw(iter/10.0, &pt);
+      o1.push();
+      o1.draw(iter/10.0, &pt, &ln);
+      o2.push();
+      o2.draw(iter/10.0, &pt, &ln);
     }
     ++iter;
   }

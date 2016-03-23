@@ -23,8 +23,20 @@ struct Particle {
   double vx=0.0, vy=0.0;
   Obj *parent;
   int index;
-  void draw(double z, void (*pt)(double,double,double)) {
+
+  // Draw debugging
+  double lx,ly,lz;
+  bool last = false;
+  void draw(double z, void (*pt)(double,double,double),
+            void (*ln)(double,double,double,double,double,double)) {
     pt(x, y, z);
+    if (last) {
+      ln(x,y,z,lx,ly,lz);
+    }
+    last = true;
+    lx = x;
+    ly = y;
+    lz = z;
   }
 };
 
@@ -47,10 +59,41 @@ struct Voxels {
         // Collision!
         cout << "Found collision: " << kv.first.first << "," << kv.first.second << endl;
         assert(kv.second.size() == 2); // FOR NOW
-        Collision c;
-        c.p1 = kv.second[0];
-        c.p2 = kv.second[1];
-        out.push_back(c);
+        Particle *p1 = kv.second[0];
+        Particle *p2 = kv.second[1];
+        double dx = p1->x - p2->x;
+        double dy = p1->y - p2->y;
+        double dSq = dx*dx+dy*dy;
+        if (dSq < PART_D*PART_D) {
+          Collision c;
+          c.p1 = kv.second[0];
+          c.p2 = kv.second[1];
+          out.push_back(c);
+        }
+      }
+      else if (kv.second.size() == 1) {
+        Particle *p1 = kv.second[0];
+        // Search adjacent
+        for (int i = -1; i <= 1; ++i) {
+          for (int j = -1; j <= 1; ++j) {
+            if (i == 0 && j == 0) continue;
+            auto loc = make_pair(kv.first.first+i, kv.first.second+j);
+            if (voxels.count(loc)) {
+              assert(voxels[loc].size() == 1);
+              Particle *p2 = voxels[loc][0];
+              double dx = p1->x - p2->x;
+              double dy = p1->y - p2->y;
+              double dSq = dx*dx+dy*dy;
+              if (dSq < PART_D*PART_D) {
+                // Collision!
+                Collision c;
+                c.p1 = p1;
+                c.p2 = p2;
+                out.push_back(c);
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -73,7 +116,7 @@ struct Obj {
   // Integrate steps
   void integrateForce(double ts) {
     if (fixed) return;
-    cout << "Integrating force " << fx << "," << fy << endl;
+    cout << "Integrating force " << fx << "," << fy << "," << t << endl;
     vx += fx*ts;
     vy += fy*ts;
     w += t*ts;
@@ -127,9 +170,10 @@ struct Obj {
     locs.emplace_back(lx, ly);
   }
 
-  void draw(double z, void (*pt)(double,double,double)) {
+  void draw(double z, void (*pt)(double,double,double),
+            void (*ln)(double,double,double,double,double,double)) {
     for (Particle *p : parts) {
-      p->draw(z, pt);
+      p->draw(z, pt, ln);
     }
   }
 };
