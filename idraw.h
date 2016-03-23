@@ -23,10 +23,18 @@ IGUIEnvironment *guienv;
 struct IrrObj {
   Obj* parent;
   IMeshSceneNode* node;
+  vector<IMeshSceneNode*> parts;
 
   void updatePos() {
     node->setPosition(vector3df(parent->x, parent->y, 0));
-    node->setRotation(vector3df(0, 0, -parent->theta*180.0/M_PI));
+    node->setRotation(vector3df(0, 0, parent->theta*180.0/M_PI));
+    
+    assert(parent->parts.size() == parts.size());
+    for (int i = 0; i < parts.size(); ++i) {
+      IMeshSceneNode* mn = parts[i];
+      Particle* part = parent->parts[i];
+      mn->setPosition(vector3df(part->x, part->y, 0));
+    }
   }
 };
 
@@ -69,6 +77,10 @@ int addObj(Obj* obj) {
                                    vector3df(0,0,0)/*position*/,
                                    vector3df(0,0,0)/*rotation*/, 
                                    vector3df(0.1,0.1,0.1)/*scale*/);
+  for (Particle *p : obj->parts) {
+    IMeshSceneNode *mn = smgr->addSphereSceneNode(PART_D/2/*radius*/);
+    io.parts.push_back(mn);
+  }
   io.updatePos();
   objects.push_back(io);
 }

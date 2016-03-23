@@ -100,8 +100,9 @@ int main(int argc, char** argv) {
   o1.y = 3.0;
   o1.vy = -1.0;
   
-  o2.addPart(0.5, 0.5);
-  o2.addPart(0.5, -0.5);
+  o2.addPart(0.0, 0.5);
+  o2.addPart(0.0, -0.5);
+  o2.x = 0.5;
   o2.fixed = true;
 
   o3.addPart(0.0, 0.5);
