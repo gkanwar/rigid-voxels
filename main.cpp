@@ -5,12 +5,16 @@
 #include <map>
 #include <unistd.h>
 
+#include "types.h"
+
 // Drawing
 #include "vdb.h"
 
-#include "types.h"
-
 using namespace std;
+
+void pt(double x, double y, double z) {
+  vdb_point(x,y,z);
+}
 
 bool fc(double f1, double f2) {
   return fabs(f1-f2) < 0.0001;
@@ -56,8 +60,8 @@ int main() {
 
   // Drop o1 onto o2 (1-part each)
   Obj o1, o2;
-  o1.addPart(0.0, 0.5);
-  o1.addPart(0.0, -0.5);
+  o1.addPart(0.0, 0.0);
+  o1.addPart(1.0, 0.0);
   o2.addPart(0.0, 0.5);
   o2.addPart(0.0, -0.5);
   o1.y = 3.0;
@@ -106,8 +110,8 @@ int main() {
     cout << "o1 vy: " << o1.vy << endl;
     cout << "o2 vy: " << o2.vy << endl;
     if (iter % 10 == 0) {
-      vdb_point(o1.x, o1.y, iter/10.0);
-      vdb_point(o2.x, o2.y, iter/10.0);
+      o1.draw(iter/10.0, &pt);
+      o2.draw(iter/10.0, &pt);
     }
     ++iter;
   }

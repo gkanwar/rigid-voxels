@@ -23,6 +23,9 @@ struct Particle {
   double vx=0.0, vy=0.0;
   Obj *parent;
   int index;
+  void draw(double z, void (*pt)(double,double,double)) {
+    pt(x, y, z);
+  }
 };
 
 struct Collision {
@@ -122,6 +125,12 @@ struct Obj {
     p->index = locs.size();
     parts.push_back(p);
     locs.emplace_back(lx, ly);
+  }
+
+  void draw(double z, void (*pt)(double,double,double)) {
+    for (Particle *p : parts) {
+      p->draw(z, pt);
+    }
   }
 };
 
