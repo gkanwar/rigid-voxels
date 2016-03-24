@@ -97,13 +97,13 @@ int main(int argc, char** argv) {
   Obj o1, o2, o3, o4;
   o1.addPart(vector3df(0,0.5,0));
   o1.addPart(vector3df(0,-0.5,0));
-  o1.theta.fromAngleAxis(M_PI/2, vector3df(0,0,1)); // 90 degrees about z axis
+  o1.theta.fromAngleAxis(M_PI/2, vector3df(1,0,0)); // 90 degrees about x axis
   o1.x.Y = 3.0;
   o1.v.Y = -1.0;
   
   o2.addPart(vector3df(0,0.5,0));
   o2.addPart(vector3df(0,-0.5,0));
-  o2.x.X = 0.5;
+  o2.x.Z = 0.5;
   o2.fixed = true;
 
   o3.addPart(vector3df(0,0.5,0));

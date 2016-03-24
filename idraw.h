@@ -57,11 +57,8 @@ int init() {
   // Just some sample text
   guienv->addStaticText(L"RigidVoxels test", rect<s32>(10,10,260,22), true);
 
-  // TODO: Lighting
   smgr->addLightSceneNode(0/*parent*/, vector3df(0,0,80.0)/*pos*/,
                           SColorf(0.5f, 1.0f, 0.5f)/*color*/);
-  // smgr->addLightSceneNode(0/*parent*/, vector3df(3,3,100)/*pos*/);
-  
   smgr->addCameraSceneNode(0/*parent*/, vector3df(5.0,5.0,10.0)/*position*/,
                            vector3df(0,3.0,0)/*lookat*/);
 
