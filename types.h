@@ -60,18 +60,25 @@ struct Voxels {
     for (auto &kv : voxels) {
       if (kv.second.size() > 1) {
         // Collision!
-        cout << "Found collision: " << kv.first.first << "," << kv.first.second << endl;
-        assert(kv.second.size() == 2); // FOR NOW
-        Particle *p1 = kv.second[0];
-        Particle *p2 = kv.second[1];
-        double dx = p1->x - p2->x;
-        double dy = p1->y - p2->y;
-        double dSq = dx*dx+dy*dy;
-        if (dSq < PART_D*PART_D) {
-          Collision c;
-          c.p1 = kv.second[0];
-          c.p2 = kv.second[1];
-          out.push_back(c);
+        //cout << "Found collision: " << kv.first.first << "," << kv.first.second << endl;
+        /*
+        if (kv.second.size() > 2) {
+          cout << "found " << kv.second.size() << "-way collision" << endl;
+          }*/
+        for (int i = 0; i < kv.second.size(); ++i) {
+          for (int j = i; j < kv.second.size(); ++j) {
+            Particle *p1 = kv.second[i];
+            Particle *p2 = kv.second[j];
+            double dx = p1->x - p2->x;
+            double dy = p1->y - p2->y;
+            double dSq = dx*dx+dy*dy;
+            if (dSq < PART_D*PART_D) {
+              Collision c;
+              c.p1 = kv.second[0];
+              c.p2 = kv.second[1];
+              out.push_back(c);
+            }
+          }
         }
       }
       else if (kv.second.size() == 1) {
