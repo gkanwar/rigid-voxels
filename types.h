@@ -66,7 +66,7 @@ struct Voxels {
           cout << "found " << kv.second.size() << "-way collision" << endl;
           }*/
         for (int i = 0; i < kv.second.size(); ++i) {
-          for (int j = i; j < kv.second.size(); ++j) {
+          for (int j = i+1; j < kv.second.size(); ++j) {
             Particle *p1 = kv.second[i];
             Particle *p2 = kv.second[j];
             double dx = p1->x - p2->x;
@@ -74,8 +74,8 @@ struct Voxels {
             double dSq = dx*dx+dy*dy;
             if (dSq < PART_D*PART_D) {
               Collision c;
-              c.p1 = kv.second[0];
-              c.p2 = kv.second[1];
+              c.p1 = kv.second[i];
+              c.p2 = kv.second[j];
               out.push_back(c);
             }
           }
