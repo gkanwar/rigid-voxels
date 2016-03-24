@@ -95,17 +95,20 @@ int main(int argc, char** argv) {
   // Drop o1 onto o2 (1-part each)
   Obj o1, o2, o3, o4;
   o1.addPart(0.0, 0.5);
+  o1.addPart(0.0, 0.0);
   o1.addPart(0.0, -0.5);
   o1.theta = M_PI/2;
   o1.y = 3.0;
   o1.vy = -1.0;
   
   o2.addPart(0.0, 0.5);
+  o2.addPart(0.0, 0.0);
   o2.addPart(0.0, -0.5);
   o2.x = 0.5;
   o2.fixed = true;
 
   o3.addPart(0.0, 0.5);
+  o3.addPart(0.0, 0.0);
   o3.addPart(0.0, -0.5);
   o3.theta = M_PI/4;
   o3.y = 5.0;
@@ -113,6 +116,7 @@ int main(int argc, char** argv) {
 
   o4.addPart(0.0, 0.5);
   o4.addPart(0.0, -0.5);
+  o4.addPart(0.0, 0.0);
   o4.theta = -M_PI/4;
   o4.y = 6.0;
   o4.vy = 0.0;
