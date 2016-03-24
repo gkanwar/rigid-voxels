@@ -7,10 +7,15 @@
 #include <cassert>
 #include <iostream>
 
+#include <irrlicht/irrlicht.h>
+
+#include "util.h"
+
 using namespace std;
+using namespace irr::core;
 
 #define PART_D 0.5
-#define SIZE 100 // 10.0 x 10.0 region
+#define SIZE 100 // 10.0 x 10.0 x 10.0 region
 
 // Enclose all constant params
 namespace {
@@ -22,24 +27,22 @@ const double kt = 0.1;
 struct Obj;
 
 struct Particle {
-  double x=0.0, y=0.0;
-  double vx=0.0, vy=0.0;
+  vector3df x;
+  vector3df v;
   Obj *parent;
   int index;
 
   // Draw debugging
-  double lx,ly,lz;
+  vector3df l;
   bool last = false;
   void draw(double z, void (*pt)(double,double,double),
             void (*ln)(double,double,double,double,double,double)) {
-    pt(x, y, z);
+    pt(x.X, x.Y, x.Z);
     if (last) {
-      ln(x,y,z,lx,ly,lz);
+      ln(x.X,x.Y,x.Z,l.X,l.Y,l.Z);
     }
     last = true;
-    lx = x;
-    ly = y;
-    lz = z;
+    l = x;
   }
 };
 
@@ -52,30 +55,25 @@ struct Collision {
 };
 
 struct Voxels {
-  map< pair<int,int>, vector<Particle*> > voxels;
-  double xbase=-5.0, ybase=-3.0;
+  std::map< vector3di, vector<Particle*> > voxels;
+  double xbase=-5.0, ybase=-3.0, zbase=-5.0;
   double size=PART_D;
 
   void findCollisions(vector<Collision> &out) {
     for (auto &kv : voxels) {
       if (kv.second.size() > 1) {
         // Collision!
-        //cout << "Found collision: " << kv.first.first << "," << kv.first.second << endl;
-        /*
-        if (kv.second.size() > 2) {
-          cout << "found " << kv.second.size() << "-way collision" << endl;
-          }*/
+        cout << "Found collision: " << kv.first << endl;
         for (int i = 0; i < kv.second.size(); ++i) {
           for (int j = i+1; j < kv.second.size(); ++j) {
-            Particle *p1 = kv.second[i];
-            Particle *p2 = kv.second[j];
-            double dx = p1->x - p2->x;
-            double dy = p1->y - p2->y;
-            double dSq = dx*dx+dy*dy;
+            Particle *p1 = kv.second[0];
+            Particle *p2 = kv.second[1];
+            vector3df d = p1->x - p2->x;
+            double dSq = d.getLengthSQ();
             if (dSq < PART_D*PART_D) {
               Collision c;
-              c.p1 = kv.second[i];
-              c.p2 = kv.second[j];
+              c.p1 = kv.second[0];
+              c.p2 = kv.second[1];
               out.push_back(c);
             }
           }
@@ -86,19 +84,20 @@ struct Voxels {
         // Search adjacent
         for (int i = -1; i <= 1; ++i) {
           for (int j = -1; j <= 1; ++j) {
-            if (i == 0 && j == 0) continue;
-            auto loc = make_pair(kv.first.first+i, kv.first.second+j);
-            if (voxels.count(loc)) {
-              for (Particle *p2 : voxels[loc]) {
-                double dx = p1->x - p2->x;
-                double dy = p1->y - p2->y;
-                double dSq = dx*dx+dy*dy;
-                if (dSq < PART_D*PART_D) {
-                  // Collision!
-                  Collision c;
-                  c.p1 = p1;
-                  c.p2 = p2;
-                  out.push_back(c);
+            for (int k = -1; k <= 1; ++k) {
+              if (i == 0 && j == 0 && k == 0) continue;
+              auto loc = vector3di(kv.first.X+i, kv.first.Y+j, kv.first.Z+k);
+              if (voxels.count(loc)) {
+                for (Particle *p2 : voxels[loc]) {
+                  vector3df d = p1->x - p2->x;
+                  double dSq = d.getLengthSQ();
+                  if (dSq < PART_D*PART_D) {
+                    // Collision!
+                    Collision c;
+                    c.p1 = p1;
+                    c.p2 = p2;
+                    out.push_back(c);
+                  }
                 }
               }
             }
@@ -111,39 +110,42 @@ struct Voxels {
 
 struct Obj {
   vector<Particle*> parts;
-  vector< pair<double,double> > locs;
+  vector< vector3df > locs;
   
-  double x=0.0, y=0.0; // Linear pos
-  double vx=0.0, vy=0.0; // Linear velocity
-  double theta=0.0; // Angular pos
-  double w=0.0; // Angular velocity
+  vector3df x; // Linear pos
+  vector3df v; // Linear velocity
+  quaternion theta; // Angular pos
+  vector3df w; // Angular velocity
 
-  double fx=0.0, fy=0.0; // Step force
-  double t=0.0; // Torque
+  vector3df f; // Step force
+  vector3df t; // Torque
 
   bool fixed = false;
 
   // Integrate steps
   void integrateForce(double ts) {
     if (fixed) return;
-    cout << "Integrating force " << fx << "," << fy << "," << t << endl;
-    vx += fx*ts;
-    vy += fy*ts;
+    cout << "Integrating force " << f << "; " << t << endl;
+    v += f*ts;
     w += t*ts;
   }
 
   void integrateVel(double ts) {
     if (fixed) return;
-    x += vx*ts;
-    y += vy*ts;
-    theta += w*ts;
+    x += v*ts;
+    // Compose quaterion for current rotation with new rotation
+    vector3df dtheta = w*ts;
+    double angle = dtheta.getLength();
+    dtheta.normalize();
+    quaternion dthetaq;
+    dthetaq.fromAngleAxis((float)angle, dtheta);
+    theta = dthetaq*theta;
   }
 
   // Clear between steps
   void clearStepVals() {
-    fx = 0.0;
-    fy = 0.0;
-    t = 0.0;
+    f = vector3df(0,0,0);
+    t = vector3df(0,0,0);
   }
   
   // Push velocities/positions into parts
@@ -151,33 +153,43 @@ struct Obj {
     assert(locs.size() == parts.size());
     for (int i = 0; i < locs.size(); ++i) {
       Particle *p = parts[i];
-      pair<double,double> loc = locs[i];
-      p->x = x + cos(theta)*loc.first - sin(theta)*loc.second;
-      p->y = y + sin(theta)*loc.first + cos(theta)*loc.second;
-      double rad = sqrt(loc.first*loc.first + loc.second*loc.second);
-      double locTheta = atan2(loc.second, loc.first)+theta+M_PI/2.0;
-      p->vx = vx + cos(locTheta)*rad*w;
-      p->vy = vy + sin(locTheta)*rad*w;
+      vector3df loc = locs[i];
+      quaternion rlocq(loc.X, loc.Y, loc.Z, 0);
+      quaternion thetaInv = theta;
+      thetaInv.makeInverse();
+      rlocq = thetaInv*rlocq*theta;
+      vector3df rloc(rlocq.X, rlocq.Y, rlocq.Z);
+      p->x = x + rloc;
+
+      p->v = v;
+      if (w.getLengthSQ() > 0.0) {
+        vector3df tangent = w.crossProduct(rloc);
+        tangent.normalize();
+        vector3df norm = rloc - rloc.dotProduct(w)*w / w.getLengthSQ();
+        p->v += norm.getLength() * w.getLength() * tangent;
+      }
     }
   }
 
   void dumpIntoVoxels(Voxels &v) {
     for (Particle *p : parts) {
-      int xi = (int)((p->x-v.xbase) / v.size);
-      int yi = (int)((p->y-v.ybase) / v.size);
-      assert(xi < SIZE);
-      assert(yi < SIZE);
-      v.voxels[make_pair(xi,yi)].push_back(p);
+      int xi = (int)((p->x.X-v.xbase) / v.size);
+      int yi = (int)((p->x.Y-v.ybase) / v.size);
+      int zi = (int)((p->x.Z-v.zbase) / v.size);
+      // assert(xi < SIZE);
+      // assert(yi < SIZE);
+      // assert(zi < SIZE);
+      v.voxels[vector3di(xi,yi,zi)].push_back(p);
       cout << "Dumped part into : " << xi << "," << yi << endl;
     }
   }
 
-  void addPart(double lx, double ly) {
+  void addPart(vector3df l) {
     Particle *p = new Particle();
     p->parent = this;
     p->index = locs.size();
     parts.push_back(p);
-    locs.emplace_back(lx, ly);
+    locs.push_back(l);
   }
 
   void draw(double z, void (*pt)(double,double,double),

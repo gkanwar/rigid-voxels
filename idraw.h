@@ -26,14 +26,16 @@ struct IrrObj {
   vector<IMeshSceneNode*> parts;
 
   void updatePos() {
-    node->setPosition(vector3df(parent->x, parent->y, 0));
-    node->setRotation(vector3df(0, 0, parent->theta*180.0/M_PI));
+    node->setPosition(parent->x);
+    vector3df euler;
+    parent->theta.toEuler(euler);
+    node->setRotation(euler*RADTODEG);
     
     assert(parent->parts.size() == parts.size());
     for (int i = 0; i < parts.size(); ++i) {
       IMeshSceneNode* mn = parts[i];
       Particle* part = parent->parts[i];
-      mn->setPosition(vector3df(part->x, part->y, 0));
+      mn->setPosition(part->x);
     }
   }
 };

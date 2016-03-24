@@ -1,60 +1,45 @@
 #include "types.h"
 
+using namespace irr::core;
+
 void Collision::applyForces() {
   // Ignore internal collisions
   if (p1->parent == p2->parent) return;
   
   // R is vector from p2 to p1
-  double r_x = p1->x - p2->x;
-  double r_y = p1->y - p2->y;
-  double rad = sqrt(r_x*r_x + r_y*r_y);
-  double r_xhat = r_x/rad;
-  double r_yhat = r_y/rad;
+  vector3df r = p1->x - p2->x;
+  double rad = r.getLength();
+  vector3df rhat = r.normalize();
 
-  double p1fx = 0.0;
-  double p1fy = 0.0;
-  double p2fx = 0.0;
-  double p2fy = 0.0;
+  vector3df f1(0,0,0);
+  vector3df f2(0,0,0);
     
   // Spring model
   double spMag = -k*(PART_D - rad);
-  p1fx -= spMag*r_xhat;
-  p1fy -= spMag*r_yhat;
-  p2fx += spMag*r_xhat;
-  p2fy += spMag*r_yhat;
+  f1 -= spMag*rhat;
+  f2 += spMag*rhat;
 
   // Damping model
-  p1fx += p1->vx*eta;
-  p1fy += p1->vy*eta;
-  p2fx += p2->vx*eta;
-  p2fy += p2->vy*eta;
+  f1 += p1->v*eta;
+  f2 += p2->v*eta;
 
   // Shear force
-  double vrdot1 = (p1->vx*r_xhat + p1->vy*r_yhat);
-  double vrdot2 = (p2->vx*r_xhat + p2->vy*r_yhat);
-  double vtx1 = p1->vx - vrdot1*r_xhat;
-  double vty1 = p1->vy - vrdot1*r_yhat;
-  double vtx2 = p2->vx - vrdot2*r_xhat;
-  double vty2 = p2->vy - vrdot2*r_yhat;
-  p1fx += kt*vtx1;
-  p1fy += kt*vty1;
-  p2fx += kt*vtx2;
-  p2fy += kt*vty2;
+  double vrdot1 = p1->v.dotProduct(rhat);
+  double vrdot2 = p2->v.dotProduct(rhat);
+  vector3df vt1 = p1->v - vrdot1*rhat;
+  vector3df vt2 = p2->v - vrdot2*rhat;
+  f1 -= kt*vt1;
+  f2 += kt*vt2;
 
   // Update parent forces
-  p1->parent->fx += p1fx;
-  p1->parent->fy += p1fy;
-  p2->parent->fx += p2fx;
-  p2->parent->fy += p2fy;
+  p1->parent->f += f1;
+  p2->parent->f += f2;
   int p1i = p1->index;
   int p2i = p2->index;
-  // Local rotated coords
-  double p1lx = p1->x - p1->parent->x;
-  double p1ly = p1->y - p1->parent->y;
-  double p2lx = p2->x - p2->parent->x;
-  double p2ly = p2->y - p2->parent->y;
-  
-  p1->parent->t += p1lx*p1fy - p1ly*p1fx;
-  p2->parent->t += p2lx*p2fy - p2ly*p2fx;
+  // Torques
+  vector3df p1r = p1->x - p1->parent->x;
+  vector3df p2r = p2->x - p2->parent->x;
+  p1->parent->t += p1r.crossProduct(f1);
+  p2->parent->t += p2r.crossProduct(f2);
 }
 
