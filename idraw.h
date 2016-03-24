@@ -72,6 +72,11 @@ void cleanup() {
 int addObj(Obj* obj) {
   IrrObj io;
   io.parent = obj;
+
+
+  // This is needed on Ryan's computer
+  chdir("./rigid-voxels");
+
   IAnimatedMesh *mesh = smgr->getMesh("queen.obj");
   io.node = smgr->addMeshSceneNode(mesh, 0 /*parent*/, -1/*id*/,
                                    vector3df(0,0,0)/*position*/,
