@@ -26,7 +26,7 @@ struct IrrObj {
   vector<IMeshSceneNode*> parts;
 
   void updatePos() {
-    node->setPosition(parent->x);
+    node->setPosition(parent->pos);
     vector3df euler;
     parent->theta.toEuler(euler);
     node->setRotation(euler*RADTODEG);
@@ -35,10 +35,11 @@ struct IrrObj {
     for (int i = 0; i < parts.size(); ++i) {
       IMeshSceneNode* mn = parts[i];
       Particle* part = parent->parts[i];
-      mn->setPosition(part->x);
+      mn->setPosition(part->pos);
     }
   }
 };
+
 
 vector<IrrObj> objects;
 } // anonymous namespace
