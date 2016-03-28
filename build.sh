@@ -3,5 +3,6 @@
 LINK="-lIrrlicht"
 SRCS="main.cpp types.cpp util.cpp"
 INC=""
+CPP_FLAGS="$1"
 
-g++ -std=c++11 ${INC} ${SRCS} ${LINK} -o RigidVoxels
+g++ -std=c++11 ${CPP_FLAGS} ${INC} ${SRCS} ${LINK} -o RigidVoxels

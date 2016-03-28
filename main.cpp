@@ -130,12 +130,12 @@ int main(int argc, char** argv) {
 
   Voxels v;
 
-  const double ts = 0.01;
+  const double ts = 0.03;
 
   // LOOP
   int iter = 0;
   while (true) {
-    usleep(10000);
+    // usleep(10000);
 
     // Step 0: Init objs
     v.voxels.clear();
